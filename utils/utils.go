@@ -15,17 +15,24 @@ import (
 var elencoFonti []string
 
 func EseguiChiamata(d types.DatiJson) {
+	X := ""
+	if d.Xwindows {
+		X = "-X"
+	}
 	if d.Pass != "" {
 		fmt.Println("HOST=\"" + d.User + "@" + d.Host + "\"; export SSHPASS=$(pass sitilavoro/" + d.Pass + "); PREFIX=\"si\"; ")
-		fmt.Println("echo $HOST; sshpass -e ssh -o ServerAliveInterval=5 -o ServerAliveCountMax=1 $HOST")
+		fmt.Println("echo $HOST; sshpass -e ssh " + X + " -o ServerAliveInterval=5 -o ServerAliveCountMax=1 $HOST")
 	} else {
 		fmt.Println("HOST=\"" + d.User + "@" + d.Host + "\"; ")
-		fmt.Println("echo $HOST; ssh -o ServerAliveInterval=5 -o ServerAliveCountMax=1 $HOST")
+		fmt.Println("echo $HOST; ssh " + X + " -o ServerAliveInterval=5 -o ServerAliveCountMax=1 $HOST")
 	}
 }
 func stripRegex(in string) string {
 	reg, _ := regexp.Compile("[^a-zA-Z0-9]+")
-	return reg.ReplaceAllString(in, "")
+	return strings.ToLower(reg.ReplaceAllString(in, ""))
+}
+func Pulisci(s string) string {
+	return stripRegex(s)
 }
 func GetPass(p string) []string {
 	cmd := exec.Command("pass", "sitilavoro")
@@ -63,10 +70,11 @@ func SalvaDati(d []types.Dati) error {
 	}
 	json, _ := json.Marshal(types.Data)
 	//fmt.Println(string(json))
-	return os.WriteFile(types.FileJSON, json, 0666)
+	return os.WriteFile(types.DataPath+"/"+types.FileJSON, json, 0666)
 }
 func LeggiElencoDati(fileName string) []types.DatiJson {
-	f, _ := os.Open(fileName)
+	fmt.Println("Apro " + types.DataPath + "/" + fileName)
+	f, _ := os.Open(types.DataPath + "/" + fileName)
 	jsonString, err := io.ReadAll(f)
 	f.Close()
 	if err != nil {
@@ -83,4 +91,13 @@ func OrdinaElencoDati() {
 	sort.Slice(types.Data, func(i, j int) bool {
 		return strings.ToLower(types.Data[i].Nome) < strings.ToLower(types.Data[j].Nome)
 	})
+}
+func CaricaElenchi() {
+	eld, _ := os.ReadFile(types.DataPath + "/elencodati.json")
+	json.Unmarshal(eld, &types.ElencoData)
+}
+func SalvaElenchi() error {
+	s, _ := json.Marshal(types.ElencoData)
+	err := os.WriteFile(types.DataPath+"/elencodati.json", s, 0666)
+	return err
 }

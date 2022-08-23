@@ -25,7 +25,10 @@ var ent [40]binding.String
 
 func main() {
 
-	utils.Configurazione()
+	ok := utils.ConfigurazionePresente()
+	if ok == types.ConfigNonValido {
+		return
+	}
 	/*f, _ := os.Open(types.FileJSON)
 	jsonString, err := io.ReadAll(f)
 	f.Close()
@@ -36,6 +39,9 @@ func main() {
 	//s := string(jsonString)
 	//fmt.Println(s)
 	json.Unmarshal([]byte(jsonString), &types.Data)*/
+
+	utils.CaricaElenchi()
+
 	types.Data = utils.LeggiElencoDati(types.FileJSON)
 	utils.OrdinaElencoDati()
 	/*sort.Slice(types.Data, func(i, j int) bool {
@@ -58,11 +64,11 @@ func main() {
 	}
 
 	//fmt.Println(data)
-	dd := make([]types.Dati, len(types.Data))
-	dd = append(dd, types.Dati{nil, nil, nil, nil})
+	/* dd := make([]types.Dati, len(types.Data))
+	dd = append(dd, types.Dati{nil, nil, nil, nil}) */
 	//fmt.Println(dd)
 
-	myWindow := mainwindow.MainWindow(dd)
+	myWindow := mainwindow.MainWindow()
 
 	myWindow.ShowAndRun()
 
