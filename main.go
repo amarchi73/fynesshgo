@@ -25,10 +25,10 @@ var ent [40]binding.String
 
 func main() {
 
-	utils.LeggiElencoPass("fava")
+	/*utils.LeggiElencoPass("fava")
 	fmt.Println("=======")
 	utils.LeggiElencoPass("prova")
-	fmt.Println("=======")
+	fmt.Println("=======")*/
 	ok := utils.ConfigurazionePresente()
 	if ok == types.ConfigNonValido {
 		return

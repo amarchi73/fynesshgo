@@ -31,6 +31,9 @@ var ConfigPath string
 var DataPath string
 
 const ConfigNonValido = -2
+const SAVE_TYPE_PASS = 1
+const SAVE_TYPE_FILE = 0
 
 var FileJSON = "data.json"
 var DefaultFileJson = ""
+var SaveTypeDef int = SAVE_TYPE_PASS

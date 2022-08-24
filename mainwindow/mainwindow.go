@@ -9,33 +9,55 @@ import (
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"fyneapp/types"
 	"fyneapp/utils"
 	"image/color"
 	"log"
 	"os"
+	"strings"
 )
+
+type wLista struct {
+	en1    *widget.Entry
+	en2    *widget.Entry
+	en3    *widget.Entry
+	sel    *widget.Select
+	chk    *widget.Check
+	btn    *widget.Button
+	btndel *widget.Button
+}
 
 var myApp fyne.App
 var mainWindow fyne.Window
 var selectElenco *widget.Select
-var dd []types.Dati
+var datiLista []types.Dati
+var elemLista []wLista
+
+var list *widget.List
 
 func MainWindow() fyne.Window {
 	myApp = app.New()
 	myWindow := myApp.NewWindow("List Widget")
 	mainWindow = myWindow
-	dd = make([]types.Dati, len(types.Data))
-	dd = append(dd, types.Dati{nil, nil, nil, nil, nil})
 
-	list := widget.NewList(
+	ico, _ := fyne.LoadResourceFromPath("/home/adler/prove/fyne/icona.png")
+	myWindow.SetIcon(ico)
+	size := fyne.Size{1000, 500}
+	myWindow.Resize(size)
+	myWindow.CenterOnScreen()
+
+	caricaDatiForm()
+
+	list = widget.NewList(
 		func() int {
-			//fmt.Println("Lunghezza")
+			//fmt.Println(time.Now(), "Lunghezza", len(types.Data)+1)
 			return len(types.Data) + 1
 		},
 		func() fyne.CanvasObject {
 			//fmt.Println("Creazione")
+
 			//return widget.NewLabel("template")
 			lb1 := widget.NewLabel("Nome")
 			lb2 := widget.NewLabel("User")
@@ -44,105 +66,51 @@ func MainWindow() fyne.Window {
 			lb5 := widget.NewLabel("X")
 			//lb5 := widget.NewLabel("Salva")
 			lb6 := widget.NewLabel("Esegui")
+			lb7 := widget.NewLabel("Elimina")
 			/* btn := widget.NewButton("xx", func() {
 
 			})
 			box := widget.NewEntry() */
-			c := container.New(layout.NewGridLayout(6), lb1, lb2, lb3, lb4, lb5, lb6)
+			gridLayout := layout.NewGridLayout(7)
+			sizeGrid := gridLayout.MinSize([]fyne.CanvasObject{lb1, lb2, lb3, lb4, lb5, lb6, lb7})
+			gridLayout.Layout([]fyne.CanvasObject{lb1, lb2, lb3, lb4, lb5, lb6, lb7}, sizeGrid)
+			c := container.New(gridLayout, lb1, lb2, lb3, lb4, lb5, lb6, lb7)
+
 			return c
 		},
 		func(i widget.ListItemID, o fyne.CanvasObject) {
-			dd = make([]types.Dati, len(types.Data))
-			dd = append(dd, types.Dati{nil, nil, nil, nil, nil})
-			//fmt.Println("Aggiorna")
-			/* lb := widget.NewLabel("template")
-			btn := widget.NewButton("xx", func() {
-				fmt.Println("aaaa")
-			})
-			container.Ob
-			o.(*container).New(layout.NewGridLayout(2))
-			o.(*widget.Label).SetText(data[i]) */
+
+			//fmt.Println(time.Now(), "Aggiorna")
 			if i == 0 {
 				return
 			}
 			i--
 
-			s := binding.NewString()
-			s.Set(types.Data[i].Nome)
-			dd[i].Nome = s
-			en1 := widget.NewEntryWithData(s)
-			s = binding.NewString()
-			s.Set(types.Data[i].User)
-			dd[i].User = s
-			en2 := widget.NewEntryWithData(s)
-			s = binding.NewString()
-			s.Set(types.Data[i].Host)
-			dd[i].Host = s
-			en3 := widget.NewEntryWithData(s)
-			s = binding.NewString()
-			s.Set(types.Data[i].Pass)
-			dd[i].Pass = s
-			b := binding.NewBool()
-			b.Set(types.Data[i].Xwindows)
-			dd[i].Xwindows = b
+			o.(*fyne.Container).Objects[0] = elemLista[i].en1
+			o.(*fyne.Container).Objects[1] = elemLista[i].en2
+			o.(*fyne.Container).Objects[2] = elemLista[i].en3
+			o.(*fyne.Container).Objects[3] = elemLista[i].sel
+			o.(*fyne.Container).Objects[4] = elemLista[i].chk
+			o.(*fyne.Container).Objects[5] = elemLista[i].btndel
+			o.(*fyne.Container).Objects[6] = elemLista[i].btn
 
-			//en4 := widget.NewEntryWithData(s)
-
-			elencopass := utils.GetPass("")
-			en4 := widget.NewSelect(elencopass, func(value string) {
-				//log.Println("Select set to", value)
-				dd[i].Pass.Set(value)
-			})
-			en4.SetSelected(types.Data[i].Pass)
-
-			/* btnSave := widget.NewButton("Salva", func() {
-				v, _ := dd[i].Nome.Get()
-				//fmt.Println("aaaa " + strconv.Itoa(i) + " " + v)
-				s, _ := dd[i].Nome.Get()
-				dd[i].Nome.Set(s + ".")
-				data[i].Nome = v
-			}) */
-			btnRun := widget.NewButton("Esegui", func() {
-				fmt.Println(i)
-				v, _ := dd[i].Nome.Get()
-				//fmt.Println("aaaa " + strconv.Itoa(i) + " " + v)
-				s, _ := dd[i].Nome.Get()
-				dd[i].Nome.Set(s + ".")
-				types.Data[i].Nome = v
-
-				utils.EseguiChiamata(types.Data[i])
-
-				myWindow.Close()
-			})
-			chk := widget.NewCheck("X", func(c bool) {
-				dd[i].Xwindows.Set(c)
-				types.Data[i].Xwindows = c
-
-			})
-			chk.SetChecked(types.Data[i].Xwindows)
-			chk.Refresh()
-			/* en4.OnChanged = func(s string) {
-				fmt.Println("CAMBIATO " + s)
-			} */
-			o.(*fyne.Container).Objects[0] = en1
-			o.(*fyne.Container).Objects[1] = en2
-			o.(*fyne.Container).Objects[2] = en3
-			o.(*fyne.Container).Objects[3] = en4
-			o.(*fyne.Container).Objects[4] = chk
-			o.(*fyne.Container).Objects[5] = btnRun
-			//o.(*fyne.Container).Objects[5] = btnSave
-		})
+		},
+	)
 
 	os.Setenv("FOO", "1")
-	//dir, _ := os.UserHomeDir()
-	//fmt.Println(dir)
 
-	//myWindow.SetContent(list)
 	topDefaultBtn := widget.NewButton("Predefinito", func() {
 		types.DefaultFileJson = types.FileJSON
 		utils.SalvaConf("default", types.FileJSON)
 	})
-	top := canvas.NewText("Seleziona un elenco", color.White)
+
+	curPass := strings.ReplaceAll(types.FileJSON, ".json", "")
+	fmt.Println("curpass", curPass)
+	topTxt := "Seleziona un elenco"
+	if curPass != "" {
+		topTxt = "Elenco Selezionato " + curPass
+	}
+	top := canvas.NewText(topTxt, color.White)
 	topBtn := widget.NewButton("Seleziona", func() {
 		//elencopass := []string{"uno", "due", "tre"}
 
@@ -151,7 +119,11 @@ func MainWindow() fyne.Window {
 
 		var elencopass []string
 		elencopass = append(elencopass, "Nuovo")
+		indPass := 0
 		for i := 0; i < len(types.ElencoData); i++ {
+			if curPass == types.ElencoData[i].Nome {
+				indPass = i
+			}
 			elencopass = append(elencopass, types.ElencoData[i].Nome)
 		}
 		selectElenco = widget.NewSelect(elencopass, func(value string) {
@@ -164,9 +136,10 @@ func MainWindow() fyne.Window {
 				top.Text = "Seleziona un elenco"
 			}
 			aggiornaDati()
+			fmt.Println("SELEZIONATO")
 			top.Refresh()
 		})
-		selectElenco.SetSelected(elencopass[0])
+		selectElenco.SetSelected(types.ElencoData[indPass].Path)
 		c := container.New(layout.NewVBoxLayout(), selectElenco, e)
 		dialog.ShowCustomConfirm("Seleziona un elenco", "nuovo/usa", "chiudi", c, func(ret bool) {
 			ok := ""
@@ -186,11 +159,12 @@ func MainWindow() fyne.Window {
 					top.Text = "Elenco Selezionato " + e.Text
 					top.Refresh()
 					aggiornaDati()
+
+					dialog.ShowInformation("Creo un nuovo elenco", "Nuovo "+ok, myWindow)
 				}
 			} else {
 				ok = "NO"
 			}
-			dialog.ShowInformation("Creo un nuovo elenco", "Nuovo "+ok, myWindow)
 		}, myWindow)
 	})
 
@@ -198,7 +172,7 @@ func MainWindow() fyne.Window {
 	//middle := canvas.NewText("content", color.White)
 
 	save := widget.NewButton("Salva", func() {
-		errsave := utils.SalvaDati(dd)
+		errsave := utils.SalvaDati(datiLista)
 		if errsave == nil {
 			dialog.ShowInformation("Salvataggio", "Salvato", myWindow)
 		} else {
@@ -207,10 +181,14 @@ func MainWindow() fyne.Window {
 	})
 	nuovo := widget.NewButton("Nuovo", func() {
 		types.Data = append(types.Data, types.DatiJson{"", "", "", "", false})
-		dd = append(dd, types.Dati{nil, nil, nil, nil, nil})
+		//datiLista = append(datiLista, types.Dati{nil, nil, nil, nil, nil})
+
+		elemLista = append(elemLista, wLista{nil, nil, nil, nil, nil, nil, nil})
+		caricaDatiForm()
 		list.Refresh()
 	})
 	passRefresh := widget.NewButton("Refresh", func() {
+		caricaDatiForm()
 		list.Refresh()
 	})
 	bottom := container.New(layout.NewHBoxLayout(), save, layout.NewSpacer(), nuovo, passRefresh)
@@ -220,12 +198,6 @@ func MainWindow() fyne.Window {
 		topContainer, left, list, bottom)
 	myWindow.SetContent(content)
 
-	ico, _ := fyne.LoadResourceFromPath("/home/adler/prove/fyne/icona.png")
-	myWindow.SetIcon(ico)
-	size := fyne.Size{1000, 500}
-	myWindow.Resize(size)
-	myWindow.CenterOnScreen()
-
 	/* dialog.ShowFileOpen(func(u fyne.URIReadCloser, e error) {
 		fmt.Println(u.URI().String())
 	}, myWindow) */
@@ -233,11 +205,93 @@ func MainWindow() fyne.Window {
 	return myWindow
 }
 
+func caricaDatiForm() {
+	elemLista = make([]wLista, len(types.Data))
+	datiLista = make([]types.Dati, len(types.Data))
+	datiLista = append(datiLista, types.Dati{nil, nil, nil, nil, nil})
+
+	for i := 0; i < len(types.Data); i++ {
+		s := binding.NewString()
+		s.Set(types.Data[i].Nome)
+		datiLista[i].Nome = s
+		//en1 := widget.NewEntryWithData(s)
+		s = binding.NewString()
+		s.Set(types.Data[i].User)
+		datiLista[i].User = s
+		//en2 := widget.NewEntryWithData(s)
+		s = binding.NewString()
+		s.Set(types.Data[i].Host)
+		datiLista[i].Host = s
+		//en3 := widget.NewEntryWithData(s)
+		s = binding.NewString()
+		s.Set(types.Data[i].Pass)
+		datiLista[i].Pass = s
+		b := binding.NewBool()
+		b.Set(types.Data[i].Xwindows)
+		datiLista[i].Xwindows = b
+
+		// Per una questione di scope serve questo accrocchio
+		ii := i
+
+		elemLista[i].en1 = widget.NewEntryWithData(datiLista[i].Nome)
+		elemLista[i].en2 = widget.NewEntryWithData(datiLista[i].User)
+		elemLista[i].en3 = widget.NewEntryWithData(datiLista[i].Host)
+		pswList := utils.GetPass(types.FileJSON)
+		elemLista[i].sel = widget.NewSelect(pswList, func(value string) {
+			i := ii
+			log.Println("Select set to", value)
+			datiLista[i].Pass.Set(value)
+		})
+		elemLista[i].sel.SetSelected(types.Data[i].Pass)
+
+		elemLista[i].btn = widget.NewButton("Esegui", func() {
+			i := ii
+			fmt.Println("====", i, datiLista)
+			v, _ := datiLista[i].Nome.Get()
+			//fmt.Println("aaaa " + strconv.Itoa(i) + " " + v)
+			s, _ := datiLista[i].Nome.Get()
+			datiLista[i].Nome.Set(s + ".")
+			types.Data[i].Nome = v
+			utils.EseguiChiamata(types.Data[i])
+			mainWindow.Close()
+		})
+		elemLista[i].btn.Icon = theme.ComputerIcon()
+		elemLista[i].btndel = widget.NewButton("Del", func() {
+			i := ii
+			fmt.Println("====", i, datiLista)
+			datiLista = append(datiLista[:i], datiLista[i+1:]...)
+			types.Data = append(types.Data[:i], types.Data[i+1:]...)
+			caricaDatiForm()
+			list.Refresh()
+
+			/*v, _ := datiLista[i].Nome.Get()
+			s, _ := datiLista[i].Nome.Get()
+			datiLista[i].Nome.Set(s + ".")
+			types.Data[i].Nome = v
+			utils.EseguiChiamata(types.Data[i])
+			mainWindow.Close()*/
+		})
+		elemLista[i].btndel.Icon = theme.DeleteIcon()
+		elemLista[i].chk = widget.NewCheck("X", func(c bool) {
+			i := ii
+			datiLista[i].Xwindows.Set(c)
+			types.Data[i].Xwindows = c
+
+		})
+		elemLista[i].chk.SetChecked(types.Data[i].Xwindows)
+	}
+}
 func aggiornaDati() {
+	if types.FileJSON == "" {
+		return
+	}
 	fmt.Println("Leggo " + types.FileJSON)
 	types.Data = utils.LeggiElencoDati(types.FileJSON)
+	fmt.Println("====**====")
 	utils.OrdinaElencoDati()
-	selectElenco.Refresh()
+
+	caricaDatiForm()
+	list.Refresh()
 
 	if types.DefaultFileJson == types.FileJSON {
 

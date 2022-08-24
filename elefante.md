@@ -1,4 +1,4 @@
-#COME SI VA A CACCIA DI ELEFANTI
+# COME SI VA A CACCIA DI ELEFANTI
 
 **I PROGRAMMATORI** andranno a caccia dell'elefante seguendo l'algoritmo:
 1. Andare in Africa
@@ -15,4 +15,4 @@
 
 **GLI INGEGNERI** vanno a caccia di elefanti andando in Africa, catturando tutti gli animali grigi che trovano e fermandosi quando ne catturano uno che pesi il 15 per cento in piu' o in meno di un elefante osservato in precedenza.
 
-_[vecchia barzelletta non so a chi attribuirla]_
+_[vecchia barzelletta, non so a chi attribuirla]_

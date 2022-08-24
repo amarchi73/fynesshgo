@@ -5,6 +5,7 @@ import (
 	"fyneapp/types"
 	"gopkg.in/ini.v1"
 	"os"
+	"strconv"
 )
 
 func trovaEnvironment() (bool, string) {
@@ -64,6 +65,15 @@ func ConfigurazionePresente() int {
 		types.FileJSON = cfg.Section("").Key("default").Value()
 		types.DefaultFileJson = types.FileJSON
 		fmt.Println("default: " + types.FileJSON)
+	}
+	if cfg.Section("").Key("comandopass").Value() != "" {
+		ComandoPass = cfg.Section("").Key("comandopass").Value()
+	}
+	if cfg.Section("").Key("passpath").Value() != "" {
+		PassPath = cfg.Section("").Key("passpath").Value()
+	}
+	if cfg.Section("").Key("savetype").Value() != "" {
+		types.SaveTypeDef, _ = strconv.Atoi(cfg.Section("").Key("savetype").Value())
 	}
 	return 0
 }

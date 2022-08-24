@@ -35,7 +35,10 @@ func Pulisci(s string) string {
 	return stripRegex(s)
 }
 func GetPass(p string) []string {
-	cmd := exec.Command("pass", "sitilavoro")
+	if p == "" {
+		p = "sitilavoro"
+	}
+	cmd := exec.Command("pass", "/"+p)
 	stdout, err := cmd.Output()
 
 	if err != nil {
@@ -46,18 +49,26 @@ func GetPass(p string) []string {
 	// Print the output
 	//fmt.Println(string(stdout))
 	elenco := strings.Split(string(stdout), "\n")
+	var elOut []string
 	for i := 0; i < len(elenco); i++ {
-		elenco[i] = stripRegex(elenco[i])
+		str := stripRegex(elenco[i])
+		if str == p {
+			continue
+		}
+		elOut = append(elOut, str)
 	}
-	sort.Strings(elenco)
+	sort.Strings(elOut)
 	//fmt.Println(elenco)
-	return elenco
+	return elOut
 }
 func SalvaDati(d []types.Dati) error {
-
+	fmt.Println(types.Data)
 	for i := 0; i < len(d); i++ {
 		if d[i].Nome == nil {
 			continue
+		}
+		if i >= len(types.Data) {
+			break
 		}
 		s, _ := d[i].User.Get()
 		types.Data[i].User = s
@@ -70,21 +81,37 @@ func SalvaDati(d []types.Dati) error {
 	}
 	json, _ := json.Marshal(types.Data)
 	//fmt.Println(string(json))
+	if types.SaveTypeDef == types.SAVE_TYPE_PASS {
+		SalvaElencoPass(types.FileJSON, string(json))
+		return nil
+	}
 	return os.WriteFile(types.DataPath+"/"+types.FileJSON, json, 0666)
 }
 func LeggiElencoDati(fileName string) []types.DatiJson {
-	fmt.Println("Apro " + types.DataPath + "/" + fileName)
-	f, _ := os.Open(types.DataPath + "/" + fileName)
-	jsonString, err := io.ReadAll(f)
-	f.Close()
-	if err != nil {
-		fmt.Println(err.Error())
-		return nil
+	//fmt.Println("Apro " + types.DataPath + "/" + fileName)
+	var jsonString []byte
+	if types.SaveTypeDef == types.SAVE_TYPE_PASS {
+		fmt.Println("PASS ", fileName)
+		jsn := LeggiElencoPass(fileName)
+		if jsn == "NO" {
+			fmt.Println("Password sbagliata, riprova ", jsn)
+			os.Exit(1)
+		}
+		jsonString = []byte(jsn)
+	} else {
+		f, _ := os.Open(types.DataPath + "/" + fileName)
+		jsn, err := io.ReadAll(f)
+		f.Close()
+		if err != nil {
+			fmt.Println(err.Error())
+			return nil
+		}
+		jsonString = jsn
 	}
 
 	var data []types.DatiJson
 	json.Unmarshal([]byte(jsonString), &data)
-
+	fmt.Println("DATA: ", data)
 	return data
 }
 func OrdinaElencoDati() {
@@ -93,8 +120,18 @@ func OrdinaElencoDati() {
 	})
 }
 func CaricaElenchi() {
-	eld, _ := os.ReadFile(types.DataPath + "/elencodati.json")
-	json.Unmarshal(eld, &types.ElencoData)
+
+	if types.SaveTypeDef == types.SAVE_TYPE_PASS {
+		el := GetPass("fynesshgo")
+		types.ElencoData = make([]types.ElencoDatiJson, len(el))
+		for i := 0; i < len(el); i++ {
+			types.ElencoData[i].Nome = el[i]
+			types.ElencoData[i].Path = el[i]
+		}
+	} else {
+		eld, _ := os.ReadFile(types.DataPath + "/elencodati.json")
+		json.Unmarshal(eld, &types.ElencoData)
+	}
 }
 func SalvaElenchi() error {
 	s, _ := json.Marshal(types.ElencoData)
