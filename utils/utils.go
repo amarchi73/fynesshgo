@@ -91,7 +91,7 @@ func LeggiElencoDati(fileName string) []types.DatiJson {
 	//fmt.Println("Apro " + types.DataPath + "/" + fileName)
 	var jsonString []byte
 	if types.SaveTypeDef == types.SAVE_TYPE_PASS {
-		fmt.Println("PASS ", fileName)
+		//fmt.Println("PASS ", fileName)
 		jsn := LeggiElencoPass(fileName)
 		if jsn == "NO" {
 			fmt.Println("Password sbagliata, riprova ", jsn)
@@ -111,7 +111,7 @@ func LeggiElencoDati(fileName string) []types.DatiJson {
 
 	var data []types.DatiJson
 	json.Unmarshal([]byte(jsonString), &data)
-	fmt.Println("DATA: ", data)
+	//fmt.Println("DATA: ", data)
 	return data
 }
 func OrdinaElencoDati() {
@@ -137,4 +137,31 @@ func SalvaElenchi() error {
 	s, _ := json.Marshal(types.ElencoData)
 	err := os.WriteFile(types.DataPath+"/elencodati.json", s, 0666)
 	return err
+}
+func EchoString(s string) {
+	//fmt.Println("printf \"" + s + "\"")
+	fmt.Println(s)
+}
+func StampaSintassi() {
+
+	sintassi := `
+Sintassi: 
+	usa ` + os.Args[0] + ` [parametri]
+
+Per connettersi
+	` + os.Args[0] + ` <nome connessione>						usa l'elenco di default
+	` + os.Args[0] + ` -e=<nome elenco> <nome connessione>		si connette scegliendo elenco e nome connessione
+
+Varie
+	-h			questa pagina
+	-t			stampa la sintassi di esempio per una connessione ssh con i vari parametri aggiuntivi
+	-ls			mostra tutti gli elenchi con relative connessioni registrate
+	-le			mostra gli elenchi delle connessioni
+	-lc=<nome>	mostra le connessioni dell'elenco <nome>
+		
+Senza parametri viene aperta la GUI
+
+`
+	EchoString(sintassi)
+
 }
